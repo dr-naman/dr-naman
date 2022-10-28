@@ -1,11 +1,6 @@
 name: Rebase Pull Requests
 
-on:
-  push:
-    # Sequence of patterns matched against refs/heads
-    branches:    
-      - main
-      - develop
+on: workflow_dispatch
 
 jobs:
   rebase:
