@@ -17,6 +17,7 @@ jobs:
       
       # Get the list of open PRs
       - name: Rebase
+        continue-on-error: true
         run: |
           BASE_BRANCH="develop"
           open_prs=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/pulls?base=${BASE_BRANCH}&state=open")
