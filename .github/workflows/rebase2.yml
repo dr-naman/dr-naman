@@ -29,7 +29,7 @@ jobs:
           LABEL_NAME="auto-rebase"
           BASE_BRANCH="develop"
           open_prs=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/pulls?base=${BASE_BRANCH}&state=open")
-          branches=($(echo $open_prs | jq '.[] |select(.labels[].name == "${LABEL_NAME}") | .head.ref'))
+          branches=($(echo $open_prs | jq '.[] | select(.labels[].name == ${LABEL_NAME}) | .head.ref'))
           echo $branches
           # Rebasing PRs
           echo "Branches with base=${BASE_BRANCH}, label=${LABEL_NAME} and state=open are :: ${branches[@]}"
