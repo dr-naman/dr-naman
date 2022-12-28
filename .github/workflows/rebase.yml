@@ -15,6 +15,14 @@ jobs:
       - run: git fetch
         name: Fetch latest changes
 
+      - name: Install jq
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+          npm-registry-config: "/.npmrc"
+        run: |
+          npm install -g jq
+      
       # Get the list of open PRs
       - run: |
           open_prs=$(curl -s -H "Authorization: Bearer ${GITHUB_TOKEN}" https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls\?state\=open\&base\=develop | jq -r '.[].number')
