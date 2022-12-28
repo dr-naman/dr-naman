@@ -29,15 +29,15 @@ jobs:
           LABEL_NAME="auto-rebase"
           BASE_BRANCH="develop"
           open_prs=$(curl -s -H "Authorization: Bearer ${GITHUB_TOKEN}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls?base=${BASE_BRANCH}&state=open")
-          labelled_open_prs=($(echo $response | jq '.[] |select(.labels[].name == "${LABEL_NAME}") | .head.ref'))
+          branches=($(echo $response | jq '.[] |select(.labels[].name == "${LABEL_NAME}") | .head.ref'))
           # Rebasing PRs
-          echo "Branches with base=${BASE_BRANCH}, label=${LABEL_NAME} and state=open are :: ${objects[@]}"
-          for object in ${objects[@]}; do
-            branch=$(echo "$object" | tr -d '"')
-            echo $branch
+          echo "Branches with base=${BASE_BRANCH}, label=${LABEL_NAME} and state=open are :: ${branches[@]}"
+          for branch in ${branches[@]}; do
+            branch_name=$(echo "$branch" | tr -d '"')
+            echo $branch_name
             git fetch
-            git checkout $(echo $branch)
-            git branch --show-current
+            git checkout $(echo $branch_name)
+            git branch_name --show-current
             git pull origin $(echo $BASE_BRANCH) --rebase
             if git ls-files --unmerged | grep -q .; then
                 echo "Conflicts"
@@ -45,7 +45,7 @@ jobs:
                 git ls-files -u
             else
                 echo "no Conflicts"
-                git push origin $(echo $branch) --force-with-lease
+                git push origin $(echo $branch_name) --force-with-lease
             fi
           done
 
