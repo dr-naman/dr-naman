@@ -1,0 +1,54 @@
+name: Rebase open PRs 2
+
+on: workflow_dispatch
+
+jobs:
+  rebase:
+    runs-on: ubuntu-20.04
+    steps:
+      # Checkout the repository
+      - uses: actions/checkout@v2
+        name: Checkout repository
+        id: checkout
+
+      # Fetch the latest changes
+      - run: git fetch
+        name: Fetch latest changes
+
+      - name: Install jq
+        run: |
+          # Update the package list
+          sudo apt-get update
+
+          # Install jq
+          sudo apt-get install -y jq
+      
+      # Get the list of open PRs
+      - name: Rebase
+        run: |
+          LABEL_NAME="auto-rebase"
+          BASE_BRANCH="develop"
+          open_prs=$(curl -s -H "Authorization: Bearer ${GITHUB_TOKEN}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls?base=${BASE_BRANCH}&state=open")
+          labelled_open_prs=($(echo $response | jq '.[] |select(.labels[].name == "${LABEL_NAME}") | .head.ref'))
+          # Rebasing PRs
+          echo "Branches with base=${BASE_BRANCH}, label=${LABEL_NAME} and state=open are :: ${objects[@]}"
+          for object in ${objects[@]}; do
+            branch=$(echo "$object" | tr -d '"')
+            echo $branch
+            git fetch
+            git checkout $(echo $branch)
+            git branch --show-current
+            git pull origin $(echo $BASE_BRANCH) --rebase
+            if git ls-files --unmerged | grep -q .; then
+                echo "Conflicts"
+                git rebase --abort
+                git ls-files -u
+            else
+                echo "no Conflicts"
+                git push origin $(echo $branch) --force-with-lease
+            fi
+          done
+
+
+
+
