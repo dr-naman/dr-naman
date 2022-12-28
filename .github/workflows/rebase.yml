@@ -10,12 +10,10 @@ jobs:
       - uses: actions/checkout@v2
         name: Checkout repository
         id: checkout
-        echo: "Checking out repository ${{ toJson(github.repository) }}"
 
       # Fetch the latest changes
       - run: git fetch
         name: Fetch latest changes
-        echo: "Fetching latest changes from repository ${{ toJson(github.repository) }}"
 
       # Get the list of open PRs
       - run: |
