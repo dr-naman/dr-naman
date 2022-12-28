@@ -29,7 +29,7 @@ jobs:
             echo $branch_name
             # git fetch
             git checkout $(echo $branch_name)
-            git branch_name --show-current
+            git branch --show-current
             git pull origin $(echo $BASE_BRANCH) --rebase
             if git ls-files --unmerged | grep -q .; then
                 echo "Conflicts"
