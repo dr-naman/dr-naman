@@ -1,0 +1,32 @@
+name: Format PR Diff with Black
+
+on: [pull_request]
+
+jobs:
+  black:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install black
+
+    - name: Fetch diff
+      run: |
+        git fetch origin main:main
+        git diff --name-only main...${{ github.event.pull_request.head.sha }} > files.txt
+
+    - name: Run black on diff
+      run: |
+        if [[ -s files.txt ]]; then
+          xargs black --check < files.txt
+        else
+          echo "No Python files changed."
+        fi

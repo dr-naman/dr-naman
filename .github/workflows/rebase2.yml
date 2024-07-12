@@ -1,0 +1,46 @@
+name: Rebase open PRs 2
+
+on: workflow_dispatch
+
+jobs:
+  rebase:
+    runs-on: ubuntu-20.04
+    steps:
+      # Checkout the repository
+      - uses: actions/checkout@v2
+        name: Checkout repository
+        id: checkout
+
+      # Fetch the latest changes
+      - run: git fetch
+        name: Fetch latest changes
+      
+      # Get the list of open PRs
+      - name: Rebase
+        continue-on-error: true
+        run: |
+          BASE_BRANCH="develop"
+          open_prs=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/pulls?base=${BASE_BRANCH}&state=open")
+          branches=($(echo $open_prs | jq '.[] | select(.labels[].name == "auto-rebase") | .head.ref'))
+          echo $branches
+          # Rebasing PRs
+          echo "Branches with base=${BASE_BRANCH}, label=auto-rebase and state=open are :: ${branches[@]}"
+          for branch in ${branches[@]}; do
+            branch_name=$(echo "$branch" | tr -d '"')
+            echo $branch_name
+            git fetch
+            git checkout $(echo $branch_name)
+            git pull origin $(echo $BASE_BRANCH) --rebase || true
+            if git ls-files --unmerged | grep -q .; then
+                echo "Conflicts"
+                git rebase --abort
+                git ls-files -u
+            else
+                echo "no Conflicts"
+                git push origin $(echo $branch_name) --force-with-lease
+            fi
+          done
+
+
+
+
