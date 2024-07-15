@@ -1,0 +1,43 @@
+name: Capture Git Diff and Comment
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  capture-diff:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # Fetch all history for all branches and tags
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Capture Git Diff
+      id: git-diff
+      env:
+        BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+        FEATURE_BRANCH: ${{ github.event.pull_request.head.ref }}
+      run: |
+        git fetch origin $BASE_BRANCH $FEATURE_BRANCH
+        DIFF=$(git diff -W origin/$BASE_BRANCH origin/$FEATURE_BRANCH)
+        echo "$DIFF"
+        echo "::set-output name=diff::$DIFF"
+
+    - name: Create Comment
+      uses: peter-evans/create-or-update-comment@v2
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        repository: ${{ github.repository }}
+        issue-number: ${{ github.event.pull_request.number }}
+        body: |
+          ### Git Diff between `${{ github.event.pull_request.base.ref }}` and `${{ github.event.pull_request.head.ref }}`
+          ```
+          ${{ steps.git-diff.outputs.diff }}
+          ```
